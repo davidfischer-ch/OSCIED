@@ -53,7 +53,7 @@ class OrchestraAPICore(object):
 
     def __init__(self, config):
         self.config = config
-        if self.is_mock:
+        if self.config.is_mock:
             self._db = mongomock.Connection().orchestra
         else:
             self._db = pymongo.Connection(config.mongo_admin_connection)[u'orchestra']
@@ -81,14 +81,6 @@ class OrchestraAPICore(object):
     def db_find_options(self):
         return {'timeout': True, 'snapshot': False}  # FIXME E12001 can't sort with $snapshot
 
-    @property
-    def is_mock(self):
-        return not self.config.mongo_admin_connection
-
-    @property
-    def is_standalone(self):
-        return self.config.plugit_api_url is None or not self.config.plugit_api_url.strip()
-
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     def config_db(self):
@@ -103,7 +95,7 @@ class OrchestraAPICore(object):
         logging.info(u"Orchestra database's collections dropped !")
 
     def only_standalone(self):
-        if not self.is_standalone:
+        if not self.config.is_standalone:
             raise RuntimeError(to_bytes(u'This method is only available in standalone mode.'))
 
     def send_email(self, to_addresses, subject, text_plain, text_html=None):
@@ -214,7 +206,7 @@ class OrchestraAPICore(object):
         if not media.get_metadata(u'title'):
             raise ValueError(to_bytes(u"Title key is required in media asset's metadata."))
         if media.status != Media.DELETED:
-            if self.is_mock:
+            if self.config.is_mock:
                 size = randint(10*1024*1024, 10*1024*1024*1024)
                 duration = u'%02d:%02d:%02d' % (randint(0, 2), randint(0, 59), randint(0, 59))
             else:
@@ -239,7 +231,7 @@ class OrchestraAPICore(object):
             media.load_fields(self.get_user({u'_id': media.user_id}, {u'secret': 0}),
                               self.get_media({u'_id': media.parent_id}))
 
-        if not self.is_standalone:
+        if not self.config.is_standalone:
             # Add read path to the media asset
             media.api_uri = self.config.storage_medias_path(media, generate=False)
 
@@ -410,7 +402,7 @@ class OrchestraAPICore(object):
 
     def launch_transform_task(self, user_id, media_in_id, profile_id, filename, metadata, send_email, queue,
                               callback_url):
-        if self.is_standalone:
+        if self.config.is_standalone:
             user = self.get_user({u'_id': user_id}, {u'secret': 0})
             if not user:
                 raise IndexError(to_bytes(u'No user with id {0}.'.format(user_id)))
@@ -429,7 +421,7 @@ class OrchestraAPICore(object):
         self.save_media(media_out)  # Save pending output media
         # FIXME create a one-time password to avoid fixed secret authentication ...
         callback = Callback(self.config.api_url + callback_url, u'node', self.config.node_secret)
-        if self.is_mock:
+        if self.config.is_mock:
             result_id = unicode(uuid.uuid4())
         else:
             result = TransformWorker.transform_task.apply_async(
@@ -474,7 +466,7 @@ class OrchestraAPICore(object):
         if task.status in TransformTask.FINAL_STATUS:
             raise ValueError(to_bytes(u'Cannot revoke a transformation task with status {0}.'.format(task.status)))
         task.status = TransformTask.REVOKED
-        if self.is_mock:
+        if self.config.is_mock:
             pass  # FIXME TODO
         else:
             revoke(task._id, terminate=terminate)
@@ -580,7 +572,7 @@ class OrchestraAPICore(object):
         return self.config.publisher_queues
 
     def launch_publisher_task(self, user_id, media_id, send_email, queue, callback_url):
-        if self.is_standalone:
+        if self.config.is_standalone:
             user = self.get_user({u'_id': user_id}, {u'secret': 0})
             if not user:
                 raise IndexError(to_bytes(u'No user with id {0}.'.format(user_id)))
@@ -600,7 +592,7 @@ class OrchestraAPICore(object):
                                       ' task with id {0}.'.format(other._id)))
         # FIXME create a one-time password to avoid fixed secret authentication ...
         callback = Callback(self.config.api_url + callback_url, u'node', self.config.node_secret)
-        if self.is_mock:
+        if self.config.is_mock:
             result_id = unicode(uuid.uuid4())
         else:
             result = PublisherWorker.publisher_task.apply_async(
@@ -659,9 +651,9 @@ class OrchestraAPICore(object):
         task.is_valid(True)
         if task.status in PublisherTask.CANCELED_STATUS:
             raise ValueError(to_bytes(u'Cannot revoke a publication task with status {0}.'.format(task.status)))
-        if not self.is_mock:
+        if not self.config.is_mock:
             revoke(task._id, terminate=terminate)
-        if task.status == PublisherTask.SUCCESS and not self.is_mock:
+        if task.status == PublisherTask.SUCCESS and not self.config.is_mock:
             # Send revoke task to the worker that published the media
             callback = Callback(self.config.api_url + callback_url, u'node', self.config.node_secret)
             queue = task.get_hostname()

@@ -36,7 +36,6 @@ from oscied_lib.config import OrchestraLocalConfig
 from oscied_lib.config_test import ORCHESTRA_CONFIG_TEST
 from oscied_lib.constants import LOCAL_CONFIG_FILENAME
 
-# ----------------------------------------------------------------------------------------------------------------------
 
 def configure_standalone_mode():
     u"""Return an instance of the flask application after having configured the error handlers."""
@@ -123,7 +122,7 @@ try:
 
     # Create an instance of the API core
     api_core = get_test_api_core(CSV_DIRECTORY) if args.mock else OrchestraAPICore(local_config)
-    is_standalone = api_core.is_standalone
+    is_standalone = api_core.config.is_standalone
 
     # Create an instance of the flask application
     #app.config['PROPAGATE_EXCEPTIONS'] = True
@@ -134,14 +133,14 @@ try:
     from api_publisher import *
     from api_transform import *
     from api_user import *
-    if not api_core.is_standalone:
+    if not is_standalone:
         import plugit, views
         plugit.load_actions(views)
 
     #print(u'Flask URLs Map :\n{0}'.format(app.url_map))
 
     if __name__ == u'__main__':
-        if api_core.is_standalone:
+        if is_standalone:
             app.run(host=u'0.0.0.0', debug=api_core.config.verbose)
         else:
             app.run(debug=api_core.config.verbose)

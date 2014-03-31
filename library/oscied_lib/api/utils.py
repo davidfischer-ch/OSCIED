@@ -54,7 +54,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
     is_core = isinstance(api_core_or_client, OrchestraAPICore)
     orchestra = api_core_or_client if is_core else None
     api_client = api_core_or_client if not is_core else None
-    is_standalone = orchestra.is_standalone if is_core else api_client.api_local_config.is_standalone
+    config = orchestra.config if is_core else api_client.api_local_config
 
     if api_client and wait_started:
         time_start = time.time()
@@ -81,7 +81,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
             api_client.remove_medias()
 
     user_name = None
-    if not is_standalone:
+    if not config.is_standalone:
         add_users = False    # ensure that no user is added when the user API is disabled
         user_name = u'root'  # trick to bypass the user.name and display 'root' in the various calls to print()
 
@@ -96,7 +96,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
             orchestra.save_user(user, hash_secret=True)
         else:
             api_client.users.add(user)
-    users = orchestra.get_users() if is_core and is_standalone else users  # api_client.users.list()
+    users = orchestra.get_users() if is_core and config.is_standalone else users  # api_client.users.list()
 
     if add_profiles:
         i, reader = 0, csv_reader(os.path.join(api_init_csv_directory, u'tprofiles.csv'))
@@ -108,7 +108,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
             if is_core:
                 orchestra.save_transform_profile(profile)
             else:
-                if is_standalone:
+                if config.is_standalone:
                     api_client.auth = user
                 api_client.transform_profiles.add(profile)
             i = (i + 1) % len(users)
@@ -127,7 +127,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
                 #orchestra.config. bla bla -> get media.uri
                 orchestra.save_media(media)
             else:
-                if is_standalone:
+                if config.is_standalone:
                     api_client.auth = user
                 media.uri = api_client.upload_media(local_filename, backup_in_remote=backup_medias_in_remote)
                 api_client.medias.add(media)
@@ -139,7 +139,7 @@ def init_api(api_core_or_client, api_init_csv_directory, flush=False, add_users=
     if add_tasks:
         reader = csv_reader(os.path.join(api_init_csv_directory, u'ttasks.csv'))
         for user_email, in_filename, profile_title, out_filename, out_title, send_email, queue in reader:
-            user = orchestra.get_user({u'mail': user_email}) if is_standalone else User(_id=uuid.uuid4())
+            user = orchestra.get_user({u'mail': user_email}) if config.is_standalone else User(_id=uuid.uuid4())
             if not user:
                 raise IndexError(to_bytes(u'No user with e-mail address {0}.'.format(user_email)))
             for media in orchestra.get_medias():

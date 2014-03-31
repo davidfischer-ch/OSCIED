@@ -37,7 +37,7 @@ from .constants import MEDIAS_PATH, UPLOADS_PATH, LOCAL_CONFIG_FILENAME
 
 class OrchestraLocalConfig(CharmLocalConfig_Storage):
 
-    def __init__(self, api_url=u'',node_secret=u'', root_secret=u'', mongo_admin_connection=u'',
+    def __init__(self, api_url=u'', node_secret=u'', root_secret=u'', mongo_admin_connection=u'',
                  mongo_node_connection=u'', rabbit_connection=u'', charms_release=u'raring', email_server=u'',
                  email_tls=False, email_address=u'', email_username=u'', email_password=u'', plugit_api_url=u'',
                  api_path=u'api/', juju_template_path=u'juju/', ssh_template_path=u'ssh/',
@@ -77,6 +77,14 @@ class OrchestraLocalConfig(CharmLocalConfig_Storage):
         self.mongo_config_file = mongo_config_file
         self.sites_available_path = sites_available_path
         self.sites_directory = sites_directory
+
+    @property
+    def is_mock(self):
+        return not self.mongo_admin_connection
+
+    @property
+    def is_standalone(self):
+        return self.plugit_api_url is None or not self.plugit_api_url.strip()
 
     @property
     def site_directory(self):
