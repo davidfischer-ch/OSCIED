@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, random, string
 from pytoolbox.filesystem import from_template
-from pytoolbox.juju import Environment, juju_do
+from pytoolbox.juju import Environment
 
 from .api import OrchestraAPIClient, init_api
 
