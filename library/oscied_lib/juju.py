@@ -27,7 +27,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os, random, string
 from pytoolbox.filesystem import from_template
-from pytoolbox.juju import Environment, juju_do
+from pytoolbox.juju import Environment
 
 from .api import OrchestraAPIClient, init_api
 
@@ -38,21 +38,6 @@ class OsciedEnvironment(Environment):
         super(OsciedEnvironment, self).__init__(name, **kwargs)
         self.api_unit = api_unit
         self._api_client = None
-
-    def get_unit_public_address(self, service, number):
-        # FIXME move this in pytoolbox !
-        u"""Return the public address of a unit. Use the most reliable value available (dns-name of the machine)."""
-        env_type = juju_do(u'get-environment')[u'type']
-        if env_type == u'local':
-            return self.get_unit(service, number)[u'public-address']
-        else:
-            # public-address may report a private address (172.x.x.x) with non-local deployments see #132,
-            # so we need this workaround (which cannot be used for local deployments).
-            machine_number = self.get_unit(service, number)[u'machine']
-            status_dict = self.status()
-            if status_dict:
-                return status_dict[u'machines'][machine_number][u'dns-name']
-            raise ValueError('Unable to get public address of unit {0}/{1}'.format(service, number))
 
     @property
     def api_client(self):
