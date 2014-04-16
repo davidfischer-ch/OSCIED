@@ -64,5 +64,5 @@ oscied-transform:
   open_hevc_origin: ""
   x264_origin: ""
   ffmpeg_origin: "ppa:jon-severinsson/ffmpeg"
-  gpac_origin: "gpac_0.5.1.DEV-r4944_amd64.deb"
+  gpac_origin: ""
   paya_config_string: ""
