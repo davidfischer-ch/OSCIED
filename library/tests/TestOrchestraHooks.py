@@ -34,7 +34,7 @@ from oscied_lib.OrchestraHooks import OrchestraHooks
 
 CONFIG = {
     u'verbose': True, u'root_secret': u'toto', u'node_secret': u'abcd', u'repositories_user': u'oscied',
-    u'repositories_pass': u'', u'charms_repository': u'charms', u'charms_release': u'raring',
+    u'repositories_pass': u'', u'charms_repository': u'charms', u'charms_release': u'trusty',
     u'charms_repository': u'https://github.com/ebu/OSCIED/charms', u'mongo_admin_password': u'Mongo_admin_1234',
     u'mongo_node_password': u'Mongo_user_1234', u'rabbit_password': u'Alice_in_wonderland', u'email_server': u'',
     u'email_tls': True, u'email_address': u'someone@oscied.org', u'email_username': u'someone', u'email_password': u'',

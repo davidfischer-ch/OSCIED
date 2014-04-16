@@ -38,7 +38,7 @@ from .constants import MEDIAS_PATH, UPLOADS_PATH, LOCAL_CONFIG_FILENAME
 class OrchestraLocalConfig(CharmLocalConfig_Storage):
 
     def __init__(self, api_url=u'', node_secret=u'', root_secret=u'', mongo_admin_connection=u'',
-                 mongo_node_connection=u'', rabbit_connection=u'', charms_release=u'raring', email_server=u'',
+                 mongo_node_connection=u'', rabbit_connection=u'', charms_release=u'trusty', email_server=u'',
                  email_tls=False, email_address=u'', email_username=u'', email_password=u'', plugit_api_url=u'',
                  api_path=u'api/', juju_template_path=u'juju/', ssh_template_path=u'ssh/',
                  celery_template_file=u'templates/celeryconfig.py.template',

@@ -50,7 +50,7 @@ class Amazon(DeploymentScenario):
         ensure(u'oscied-transform', u'oscied-transform', local=True, to=2)
         ensure(u'oscied-webui',     u'oscied-webui',     local=True, to=1, expose=True)
         ensure(u'oscied-publisher', u'oscied-publisher', local=True, to=2, expose=True)
-        ensure(u'haproxy', u'haproxy', expose=True, local=False, release=u'precise', required=False)
+        ensure(u'haproxy', u'haproxy', expose=True, local=False, release=u'trusty', required=False)
 
         for peer in (u'orchestra', u'webui', u'transform', u'publisher'):
             self.amazon.add_relation(u'oscied-storage', u'oscied-{0}'.format(peer))
@@ -66,4 +66,4 @@ class Amazon(DeploymentScenario):
 
 if __name__ == u'__main__':
     configure_unicode()
-    Amazon(environments=[OsciedEnvironment(u'amazon', config=CONFIG, release=u'raring')]).run()
+    Amazon(environments=[OsciedEnvironment(u'amazon', config=CONFIG, release=u'trusty')]).run()

@@ -148,8 +148,8 @@ if __name__ == u'__main__':
     configure_unicode()
     EBU(environments=[
         EBUEnvironment(AMAZON, events=EVENTS[AMAZON], statistics=STATS[AMAZON], charts_path=CHARTS_PATH,
-                       config=CONFIG[AMAZON], release=u'raring'),
+                       config=CONFIG[AMAZON], release=u'trusty'),
         EBUEnvironment(MAAS, events=EVENTS[MAAS], statistics=STATS[MAAS], charts_path=CHARTS_PATH,
-                       config=CONFIG[MAAS], release=u'precise')
+                       config=CONFIG[MAAS], release=u'trusty')
     ]).run()
 
