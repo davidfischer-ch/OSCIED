@@ -99,13 +99,12 @@ class OrchestraHooks(CharmHooks_Storage):
     def configure_rabbitmq(self):
         self.info(u'Configure RabbitMQ Message Broker')
         self.cmd(u'rabbitmqctl delete_user guest', fail=False)
-        self.cmd(u'rabbitmqctl delete_vhost /', fail=False)
         self.cmd(u'rabbitmqctl add_user node "{0}"'.format(self.config.rabbit_password), fail=False)
         self.cmd(u'rabbitmqctl add_vhost celery', fail=False)
         self.cmd(u'rabbitmqctl set_permissions -p celery node ".*" ".*" ".*"', fail=False)
         users, vhosts = self.rabbit_users, self.rabbit_vhosts
         self.debug(u'RabbitMQ users: {0} vhosts: {1}'.format(users, vhosts))
-        if u'guest' in users or u'node' not in users or u'/' in vhosts or u'celery' not in vhosts:
+        if u'guest' in users or u'node' not in users or u'celery' not in vhosts:
             raise RuntimeError(to_bytes(u'Unable to configure RabbitMQ'))
 
     # ------------------------------------------------------------------------------------------------------------------

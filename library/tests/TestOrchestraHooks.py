@@ -113,7 +113,6 @@ class TestOrchestraHooks(object):
             call(u'mongo orchestra f.js'),
             call(u'mongo celery g.js'),
             call(u'rabbitmqctl delete_user guest',                   fail=False),
-            call(u'rabbitmqctl delete_vhost /',                      fail=False),
             call(u'rabbitmqctl add_user node "Alice_in_wonderland"', fail=False),
             call(u'rabbitmqctl add_vhost celery',                    fail=False),
             call(u'rabbitmqctl set_permissions -p celery node ".*" ".*" ".*"', fail=False)])
