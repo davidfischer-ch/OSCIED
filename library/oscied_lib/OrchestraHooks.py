@@ -43,7 +43,7 @@ from .hooks_base import CharmHooks_Storage
 
 class OrchestraHooks(CharmHooks_Storage):
 
-    PPAS = (u'ppa:jon-severinsson/ffmpeg', u'ppa:juju/stable')
+    PPAS = (u'ppa:smarter/ffmpeg', u'ppa:juju/stable')
     PACKAGES = tuple(set(CharmHooks_Storage.PACKAGES + (u'apache2', u'ffmpeg', u'libapache2-mod-wsgi', u'mongodb',
                      u'ntp', u'rabbitmq-server', u'x264')))
     FIX_PACKAGES = (u'apache2.2-common',)

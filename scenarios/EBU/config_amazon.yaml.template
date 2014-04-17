@@ -13,5 +13,5 @@ oscied-transform:
   storage_options: ""
   open_hevc_origin: ""
   x264_origin: ""
-  ffmpeg_origin: "ppa:jon-severinsson/ffmpeg"
+  ffmpeg_origin: "ppa:smarter/ffmpeg"
   gpac_origin: ""

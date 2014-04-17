@@ -71,10 +71,10 @@ options:
       * 'x264.tar.bz2' : Compile x264 from local archive of sources
   ffmpeg_origin:
     type: string
-    default: "ppa:jon-severinsson/ffmpeg"
+    default: "ppa:smarter/ffmpeg"
     description: |
       * '' : Get ffmpeg from Ubuntu default repository
-      * 'ppa:jon-severinsson/ffmpeg' : Get ffmpeg from this PPA repository
+      * 'ppa:smarter/ffmpeg' : Get ffmpeg from this PPA repository
       * 'ffmpeg.tar.bz2' : Compile ffmpeg from local archive of sources
   gpac_origin:
     type: string
