@@ -143,13 +143,15 @@ class WebuiHooks(CharmHooks_Storage, CharmHooks_Website):
 
     def hook_config_changed(self):
         local_cfg = self.local_config
+        # Apache site files must end with .conf for a2ensite to work
+        site_file = self.name_slug + ".conf"
 
         self.info(u'Configure Apache 2')
-        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, self.name_slug), {
+        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, site_file), {
             u'directory': local_cfg.site_directory, u'domain': self.public_address
         })
-        self.cmd(u'a2dissite default')
-        self.cmd(u'a2ensite {0}'.format(self.name_slug))
+        self.cmd(u'a2dissite 000-default')
+        self.cmd(u'a2ensite {0}'.format(site_file))
 
         self.info(u'Configure CodeIgniter the PHP framework')
         self.storage_remount()

@@ -130,6 +130,8 @@ class OrchestraHooks(CharmHooks_Storage):
 
     def hook_config_changed(self):
         cfg, local_cfg = self.config, self.local_config
+        # Apache site files must end with .conf for a2ensite to work
+        site_file = self.name_slug + ".conf"
 
         self.info(u'Start MongoDB and RabbitMQ daemons')
         self.cmd(u'service mongodb start',         fail=False)
@@ -146,12 +148,12 @@ class OrchestraHooks(CharmHooks_Storage):
 
         self.info(u'Configure Apache 2')
         self.template2config(local_cfg.htaccess_template_file, local_cfg.htaccess_config_file, {})
-        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, self.name_slug), {
+        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, site_file), {
             u'alias': self.api_alias, u'directory': local_cfg.site_directory, u'domain': self.public_address,
             u'wsgi': local_cfg.api_wsgi
         })
-        self.cmd(u'a2dissite default')
-        self.cmd(u'a2ensite {0}'.format(self.name_slug))
+        self.cmd(u'a2dissite 000-default')
+        self.cmd(u'a2ensite {0}'.format(site_file))
 
         self.info(u'Configure MongoDB Scalable NoSQL DB')
         with open(u'f.js', u'w', u'utf-8') as mongo_f:

@@ -107,7 +107,7 @@ class TestOrchestraHooks(object):
         assert_equal(self.hooks.cmd.call_args_list, [
             call(u'service mongodb start',         fail=False),
             call(u'service rabbitmq-server start', fail=False),
-            call(u'a2dissite default'),
+            call(u'a2dissite 000-default'),
             call(u'a2ensite oscied-orchestra-0'),
             call(u'mongo f.js'),
             call(u'mongo orchestra f.js'),
