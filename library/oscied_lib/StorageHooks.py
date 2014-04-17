@@ -113,6 +113,7 @@ class StorageHooks(OsciedCharmHooks):
                 # Pick-up the greatest number of bricks based on number of replica
                 bricks = bricks[:(int(len(bricks) / replica) * replica)]
                 extra = (u' ' if replica == 1 else u' replica {0} transport tcp '.format(replica)) + u' '.join(bricks)
+                extra = extra + " force" # Allow volume creation on the root partition
                 self.info(u'Create and start a replica={0} volume {1} with {2} brick{3}'.format(
                           replica, volume, len(bricks), u's' if len(bricks) > 1 else u''))
                 self.volume_do(u'create', volume=volume, options=extra)
