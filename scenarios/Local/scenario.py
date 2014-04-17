@@ -50,7 +50,7 @@ class Local(DeploymentScenario):
         ensure(u'oscied-orchestra', u'oscied-orchestra', local=True, expose=True)
         ensure(u'oscied-webui',     u'oscied-webui',     local=True, expose=True)
         ensure(u'oscied-storage',   u'oscied-storage',   local=True)
-        ensure(u'haproxy', u'haproxy', expose=True, local=False, release=u'precise', required=False)
+        ensure(u'haproxy', u'haproxy', expose=True, local=False, release=u'trusty', required=False)
 
         for peer in (u'orchestra', u'webui', u'transform', u'publisher'):
             self.local.add_relation(u'oscied-storage', u'oscied-{0}'.format(peer))
@@ -66,4 +66,4 @@ class Local(DeploymentScenario):
 
 if __name__ == u'__main__':
     configure_unicode()
-    Local(environments=[OsciedEnvironment(u'local', config=CONFIG, release=u'raring')]).run()
+    Local(environments=[OsciedEnvironment(u'local', config=CONFIG, release=u'trusty')]).run()

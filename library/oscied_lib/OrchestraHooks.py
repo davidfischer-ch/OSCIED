@@ -43,7 +43,7 @@ from .hooks_base import CharmHooks_Storage
 
 class OrchestraHooks(CharmHooks_Storage):
 
-    PPAS = (u'ppa:jon-severinsson/ffmpeg', u'ppa:juju/stable')
+    PPAS = (u'ppa:smarter/ffmpeg', u'ppa:juju/stable')
     PACKAGES = tuple(set(CharmHooks_Storage.PACKAGES + (u'apache2', u'ffmpeg', u'libapache2-mod-wsgi', u'mongodb',
                      u'ntp', u'rabbitmq-server', u'x264')))
     FIX_PACKAGES = (u'apache2.2-common',)
@@ -99,13 +99,12 @@ class OrchestraHooks(CharmHooks_Storage):
     def configure_rabbitmq(self):
         self.info(u'Configure RabbitMQ Message Broker')
         self.cmd(u'rabbitmqctl delete_user guest', fail=False)
-        self.cmd(u'rabbitmqctl delete_vhost /', fail=False)
         self.cmd(u'rabbitmqctl add_user node "{0}"'.format(self.config.rabbit_password), fail=False)
         self.cmd(u'rabbitmqctl add_vhost celery', fail=False)
         self.cmd(u'rabbitmqctl set_permissions -p celery node ".*" ".*" ".*"', fail=False)
         users, vhosts = self.rabbit_users, self.rabbit_vhosts
         self.debug(u'RabbitMQ users: {0} vhosts: {1}'.format(users, vhosts))
-        if u'guest' in users or u'node' not in users or u'/' in vhosts or u'celery' not in vhosts:
+        if u'guest' in users or u'node' not in users or u'celery' not in vhosts:
             raise RuntimeError(to_bytes(u'Unable to configure RabbitMQ'))
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -130,6 +129,8 @@ class OrchestraHooks(CharmHooks_Storage):
 
     def hook_config_changed(self):
         cfg, local_cfg = self.config, self.local_config
+        # Apache site files must end with .conf for a2ensite to work
+        site_file = self.name_slug + ".conf"
 
         self.info(u'Start MongoDB and RabbitMQ daemons')
         self.cmd(u'service mongodb start',         fail=False)
@@ -146,12 +147,12 @@ class OrchestraHooks(CharmHooks_Storage):
 
         self.info(u'Configure Apache 2')
         self.template2config(local_cfg.htaccess_template_file, local_cfg.htaccess_config_file, {})
-        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, self.name_slug), {
+        self.template2config(local_cfg.site_template_file, join(local_cfg.sites_available_path, site_file), {
             u'alias': self.api_alias, u'directory': local_cfg.site_directory, u'domain': self.public_address,
             u'wsgi': local_cfg.api_wsgi
         })
-        self.cmd(u'a2dissite default')
-        self.cmd(u'a2ensite {0}'.format(self.name_slug))
+        self.cmd(u'a2dissite 000-default')
+        self.cmd(u'a2ensite {0}'.format(site_file))
 
         self.info(u'Configure MongoDB Scalable NoSQL DB')
         with open(u'f.js', u'w', u'utf-8') as mongo_f:

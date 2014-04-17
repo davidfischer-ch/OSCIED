@@ -38,7 +38,7 @@ from .constants import MEDIAS_PATH, UPLOADS_PATH, LOCAL_CONFIG_FILENAME
 class OrchestraLocalConfig(CharmLocalConfig_Storage):
 
     def __init__(self, api_url=u'', node_secret=u'', root_secret=u'', mongo_admin_connection=u'',
-                 mongo_node_connection=u'', rabbit_connection=u'', charms_release=u'raring', email_server=u'',
+                 mongo_node_connection=u'', rabbit_connection=u'', charms_release=u'trusty', email_server=u'',
                  email_tls=False, email_address=u'', email_username=u'', email_password=u'', plugit_api_url=u'',
                  api_path=u'api/', juju_template_path=u'juju/', ssh_template_path=u'ssh/',
                  celery_template_file=u'templates/celeryconfig.py.template',
@@ -172,10 +172,10 @@ class OrchestraLocalConfig(CharmLocalConfig_Storage):
 class PublisherLocalConfig(CharmLocalConfig_Storage, CharmLocalConfig_Subordinate):
 
     def __init__(self, proxy_ips=None, mod_streaming_installed=False, apache_config_file=u'/etc/apache2/apache2.conf',
-                 www_root_path=u'/mnt', publish_uri=u'', site_template_file=u'templates/default.template',
-                 site_file=u'/etc/apache2/sites-available/default',
-                 site_ssl_template_file=u'templates/default-ssl.template',
-                 site_ssl_file=u'/etc/apache2/sites-available/default-ssl', **kwargs):
+                 www_root_path=u'/mnt', publish_uri=u'', site_template_file=u'templates/000-default.conf.template',
+                 site_file=u'/etc/apache2/sites-available/000-default.conf',
+                 site_ssl_template_file=u'templates/default-ssl.conf.template',
+                 site_ssl_file=u'/etc/apache2/sites-available/default-ssl.conf', **kwargs):
         super(PublisherLocalConfig, self).__init__(**kwargs)
         self.proxy_ips = proxy_ips or []
         self.mod_streaming_installed = mod_streaming_installed

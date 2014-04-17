@@ -39,7 +39,7 @@ from .hooks_base import CharmHooks_Storage, CharmHooks_Subordinate, CharmHooks_W
 
 class PublisherHooks(CharmHooks_Storage, CharmHooks_Subordinate, CharmHooks_Website):
 
-    PPAS = (u'ppa:jon-severinsson/ffmpeg',)
+    PPAS = (u'ppa:smarter/ffmpeg',)
     PACKAGES = tuple(set(
         CharmHooks_Storage.PACKAGES + CharmHooks_Subordinate.PACKAGES +
         CharmHooks_Website.PACKAGES + (u'apache2', u'apache2-threaded-dev', u'make', u'ntp')))
