@@ -33,27 +33,29 @@
 
   \title{Benchmarking of OSCIED}
   \author{Dimitri Racordon, David Fischer}
-  \date{17.12.13}
+  \date{16.03.14}
   \maketitle
 
   \clearpage
 
   \section{Introduction}
     \subsection{Goals}
-      In order to evaluate the OSCIED platform, we were asked to perform a complete benchmarking by the means of different use cases. Our goal was to measure values such as time of execution, costs or impact of topology of deployment and to reason about measured results to provide conclusion on software refinement and deployment advises.
+      In order to evaluate the OSCIED platform, we were asked to perform a complete benchmarking by the means of different use cases. Our goal was to measure values such as time of execution, costs or impact of the topology of deployment and to reason about measured results to provide conclusion on software refinement and deployment advises.
 
       Out of our benchmarking, we also wanted to be able to compare the running of OSCIED in a Cloud environment, compared to a deployment on private servers. Results of the comparison would enable us to identify the overhead involved by using the Cloud.
 
+      Please note we ran our measurements on the version 3.2.0 of OSCIED, and that all results and conclusions stated in this report refer to this version.
+
     \subsection{Scope}
-      We focused our study on the transcoding workflow. It consists of sending media to OSCIED, schedule transcoding tasks and retrieve transformed medias. Publication performances were out of the scope of our tests, since we did not have reliable clients to test it.
+      We focused our study on the transcoding workflow. It consists of sending media assets to OSCIED, schedule transcoding tasks and retrieve transformed media assets. Publication performances were out of the scope of our tests, since we did not have reliable clients to test it.
 
   \section{Use cases}
     In this section we present the different use cases we used in the frame of our benchmarking, together with the profile of transcoding we used.
 
     \subsection{Tasks sets}
-      We have performed our measurements over the following type transcoding task:
+      We have performed our measurements over the following type of transcoding task:
       \begin{enumerate}
-        \item Convert a MXF file into a high quality H.264 MP4, targeting mobile device such as tablets
+        \item Convert a MXF file into a high quality H.264 MP4, targeting mobile devices such as tablets
         \begin{description}
             \item[Input] Extremes\_CHSRF-Lausanne\_Mens\_200m-50368e4c43ca3.mxf
             \item[Profile] 480p for tablets (480p/25 at 1Mbps in main
@@ -62,10 +64,10 @@ profile with low-latency)
         \end{description}
       \end{enumerate}
 
-      We call task set the scheduling of a run of multiple transcoding tasks of the same type. For the purpose of our study, we sent a task set of 50 tasks to the plateform for each use case.
+      In the remaining of this document, we will call \emph{task set} the scheduling of a run of multiple transcoding tasks of the same type. For the purpose of our study, we sent a task set of 50 tasks to the platform for each use case.
 
     \subsection{scenari of deployment}
-      We ran two scenari of deployment, mainly varying the number of transform units, and the transform+storage units topology. Namely, we used the following deployments:
+      We ran three scenari of deployment, mainly varying the number of transform units, and the transform + storage units topology. Namely, we used the following deployments:
 
       \begin{description}
           \item[many small capacity VMs without merging] where we would deploy OSCIED on 11 VMs, namely 1 juju unit, 1 orchestrator unit, 4 storage units and 5 transform units, with up to 4 concurrent transcoding workers per unit;
@@ -73,7 +75,9 @@ profile with low-latency)
           \item[bare metal installation] where we would deploy OSCIED on 3 servers, namely 1 juju + storage + transform unit, 1 orchestrator + storage + transform unit and 1 storage + transform unit, with up to 6 concurrent transcoding workers per unit.
       \end{description}
 
-      We based the choice of these topologies on the intuition that an interesting difference would emerge between the merging and non merging approach. Indeed, in the first scenario, each VM lived separatedly from the others, thus heavily relying on network communications; in the second scenario, network communication are replaced by local data transferring, at the expense of computation resource sharing. To keep the two deployments equivalent in term of total computation power, we relied on the Amazon Elastic Compute Unit (ECU), an abstraction measurement of computer resources; it corresponds to an early 2006 1.7 GHz Xeon processor. For the first scenario, we used one instance of type c1.medium per OSCIED unit, i.e. a total of ten. For the second scenario, we used one instance of type c1.medium for the orgchestrator, and 2 instances of type c1.xlarge for the storage + transform units. We scaled our choices to correspond to the computation power of our bare metal installation, which approximatively equals to 42. The characteristics of the instance profiles we used are given in table $\ref{table:amazon-specs}$. Please note that Amazon doesn't give further details on the terms \emph{high} and \emph{moderate}, regarding the network performances; instead, they advice the user to choose such characteristics with respect to their own needs evalutation.
+      We based the choice of these topologies on the intuition that an interesting difference would emerge between the merging and non merging approach. Indeed, in the first scenario, each VM lived separately from the others, thus heavily relying on network communications; in the second and third scenari, network communication are replaced by local data transferring, at the expense of computation resource sharing. To keep the three scenari of deployment equivalent in term of total computation power, we relied on the Amazon Elastic Compute Unit (ECU), an abstraction measurement of computer resources; it corresponds to an early 2006 1.7 GHz Xeon processor. For the first scenario, we used one instance of type \texttt{c1.medium} per OSCIED unit, i.e. a total of ten. For the second scenario, we used one instance of type \texttt{c1.medium} for the orchestrator, and two instances of type \texttt{c1.xlarge} for the storage + transform units. We scaled our choices to correspond to the computation power of our bare metal installation, which approximately equals to 42. The characteristics of the instance profiles we used are given in table $\ref{table:amazon-specs}$. Please note that Amazon does not give further details on the terms \emph{high} and \emph{moderate}, regarding the network performances. Instead, they advice the user to choose such characteristics with respect to their own needs. The first scenario consists out of a moderate setup and the second one of an high setup. Furthermore, like the other parameters, network performances cannot be chosen; it is a characteristic of the instance type.
+
+      The two first scenari were run on a cloud environment, while the last one was ran on our private servers setup. As a result, we will refer the two first scenari as the \emph{cloud scenari}. Please note also that in the remaining of this document, we will use the terms deployment and scenario interchangeably.
 
       \begin{table}[ht]
         \centering
@@ -90,36 +94,36 @@ profile with low-latency)
         \label{table:amazon-specs}
       \end{table}
 
-      If we compare the ECU involved in all scenari, we would retrieve quite acceptable match:
+      If we compare the total ECU computed for all scenari, we would retrieve quite acceptable match:
       \begin{align*}
         \text{scenario 1: } & 10 [vm] \times 5 [ecu] &= \mathbf{50 [ecu]} \\
         \text{scenario 2: } & 1 [vm] \times 5 [ecu] + 2 [vm] \times 20 [ecu] &= \mathbf{45 [ecu]} \\
         \text{bare metal: } & 2 [server] \times 2 [cpu] \times 7 [ECU] &= \mathbf{42 [ecu]} \\
       \end{align*}
-      Please note that we ignored the juju unit in our computations for both cloud scenari, since it does not impact our benchmarking after the system has been deployed. To preserve an equal number of transcoding workers, we adapted the maximum concurrency of the transcoding workers in each instance. In other words, we allowed more workers to run simultaneously on the same instance on the second scenario, to compensate the fewer number of transconding units.
+      Please note that we ignored the juju unit in our computations, since it does not impact our benchmarking after the system has been deployed. To preserve an equal number of transcoding workers, we adapted the maximum concurrency of the transcoding workers in each instance\footnote{See section section \ref{perf-eval} for further explanation about celery's concurrency settings}. In other words, we allowed more workers to run simultaneously on the same instance on the second scenario, to compensate the fewer number of transcoding units.
 
   \section{Results}
-    In this section we present the results of our benchmarking. We will first go through the values we measured for all scenari, as presented above. Then we will interpret the meaning of these values, possibly confirming them with some additional runs. We distinguish two different kind of measurements. On one hand we collected some data on the instances activity, i.e. the actual machines running OSCIED, about their CPU, memory, disk, etc. On the other hand, we kept track of some information about OSCIED, i.e. the tasks and units status. Over a set of metrics we will introduce later, our goal was to compare the data collected from instances activity with the data from the OSCIED, using the latter to explain the former.
+    In this section we present the results of our benchmarking. We will first go through the values we measured for all scenari, as presented above. Then we will interpret the meaning of these values, possibly confirming them with some additional runs. We distinguish two different kinds of measurements. On one hand we collected some data on the instances activity, i.e. the actual machines running OSCIED, about their CPU, memory, disk, etc. On the other hand, we kept track of some information about OSCIED, i.e. the tasks and units status. Over a set of metrics we will introduce later, our goal was to compare the data collected from instances activity with the data from the OSCIED, using the latter to explain the former.
 
-    We used the following metrics to measure instances activities; please note that all these values are measured as a function of the time:
+    We used the following metrics to measure instances activity; please note that all these values are measured as a function of the time:
     \begin{description*}
       \item[CPU consumption] which is the time spent by the CPU in user and system modes;
       \item[Virtual memory usage] which basically is the amount of consumed virtual memory;
       \item[Swap memory usage] which basically is the amount of consumed swap memory;
-      \item[disk counters] which are a collection of counters about the disk activity, such as the amount of data read and written, or the time spent reading or writting data;
+      \item[disk counters] which are a collection of counters about the disks activity, such as the amount of data read and written, or the time spent reading or writing data;
       \item[network counters] which are a collection of counters about the network activity, such as the amount of data received and sent.
     \end{description*}
-    From OSCIED, we got the status of the tasks and units in function of the time. Obviously, we could explicitly get other interesting values such as the plateform bootstrapping time of the system, i.e. the time required for OSCIED to be ready to accept tasks, and the overall transcoding time.
+    From OSCIED, we got the status of the tasks and units in function of the time. We could get some other interesting values such as the platform bootstrapping time of the system, i.e. the time required for OSCIED to be ready to accept tasks, and the overall transcoding time.
 
-    \subsection{Performances evalutation}
+    \subsection{Performances evaluation}\label{perf-eval}
       We decomposed each scenario in the same three steps and timed each of these steps; the reason behind this decomposing was to prevent us from redeploying everything from scratch in the event of a problem. These three steps are
       \begin{inparaenum}[1.]
-        \item the bootstrapping of the JuJu plateform;
-        \item the deployment of OSCIED plateform;
+        \item the bootstrapping of the JuJu platform;
+        \item the deployment of OSCIED platform;
         \item the execution of the tasks.
       \end{inparaenum}
       
-      Both cloud scenari shows equal times for the first two steps, i.e. an average of 2 minutes for the bootstrapping of JuJu, and an average of 10 minutes for the deployment of OSCIED. We neglect the differences in this report because we think they are not significant enough to be relevant of some characteristics of our different topologies. In the case of the bare metal, the complete installation was about an hour, because it includes the fresh installation of Ubuntu Server on all machines. However, we measured significant difference between the time took to execute the tasks. The first scenario took 1h 10m 47s while the second performed in only 57m 31s, i.e. 13m earlier. The bare metal deployment was by far the quickest, since it took only 20m and 25s. Table \ref{table:scenari-overall-times} summarize these values.
+      Both cloud scenari shows equal times for the first two steps, i.e. an average of 2 minutes for the bootstrapping of JuJu, and an average of 10 minutes for the deployment of OSCIED. We neglect the differences in this report because we think they are not significant enough to be relevant of some characteristics of our different topologies. In the case of the bare metal, the complete installation was about an hour, because it includes the fresh installation of Ubuntu Server on all machines. However, we measured significant difference between the times took to execute the tasks. The first scenario took 1h 10m 47s while the second performed in only 57m 31s, i.e. 13m earlier. The bare metal deployment was by far the quickest, since it took only 20m and 25s. Table \ref{table:scenari-overall-times} summarizes these values.
 
       \begin{table}
         \centering
@@ -129,7 +133,7 @@ profile with low-latency)
           OSCIED deployment   & about 10m     & about 10m     & about 1h \\
           Tasks execution     & 1h 10m 47s    & 57m 31s       & 20m 25s
         \end{tabular}
-        \caption{Amazon instance type specifications}
+        \caption{Execution time of the scenari}
         \label{table:scenari-overall-times}
       \end{table}
 
@@ -137,20 +141,22 @@ profile with low-latency)
         \centering
         \begin{tabular}{lrrr}
           \textbf{Scenario}           & \textbf{one}  & \textbf{two}  & \textbf{bare metal} \\
-          Average task time           & -             & 11m 1s        & 4m 18s \\
-          Minimum task time           & -             & 3m 29s        & 2m 29s \\
-          Maximum task time           & -             & 15m 8s        & 5m 17s \\
-          Average simultaneous tasks  & -             & 10            & 12
+          Average task time           & 20m 4s        & 11m 1s        & 4m 18s \\
+          Minimum task time           & 6m 49s        & 3m 29s        & 2m 29s \\
+          Maximum task time           & 23m 13s       & 15m 8s        & 5m 17s \\
+          Average simultaneous tasks  & 14            & 10            & 12
         \end{tabular}
-        \caption{Amazon instance type specifications}
-        \label{table:scenari-overall-times}
+        \caption{Tasks execution time in more details}
+        \label{table:scenari-times}
       \end{table}
 
-      We computed that the average transcoding time of a single task was about 20m in the first cloud scenario and only 11m in the second; the bare metal scenario could perform a task in 4 minutes and 18s in average. Moreover, if we look at the task status reporting, we remark that 14 tasks were simultaneously computed in the first cloud scenario, against only 9 in the second. In the bare metal scenario, an average of 12 simultaneous tasks were performed. Theses values are reported in table \ref{}. Unexpectingly, these results do not match the theorical number of transcoding worker, in every scenari. Investigating the possible lead that the logic of celery, the library responsible for the workers management, detects the consumption of vCPU by other processes and limits itself the concurrency, we ran the bare metal scenario with an increased concurrency of 12 per unit. New batch of results did not fully confirmed our assumption, but we did note that the number of concurrent processes increased nevertheless. Our conclusion on this observation is that it is preferable to overestimate the concurrency, because celery seems to consider that number as a maximum bound and not as a goal to reach.
+      We computed that the average transcoding time of a single task was about 20m in the first cloud scenario and only 11m in the second; the bare metal scenario could perform a task in 4 minutes and 18s in average. Moreover, if we look at the task status reporting, we remark that 14 tasks were simultaneously computed in the first cloud scenario, against only 9 in the second. In the bare metal scenario, an average of 12 simultaneous tasks were performed. Theses values are reported in table \ref{table:scenari-times}.
+
+      Unexpectedly, these results do not match the theoretical number of transcoding worker, in every scenari. A possible lead would lie in the logic of celery, the library responsible for the workers management, including transcoding workers. Assuming that the concurrency parameter is not an objective celery tries to reach but rather an upper bound that would represent the size of the process pool, it may be reasonable to think that celery may detect the consumption of vCPU by other processes and limits itself the concurrency. Since celery concurrency management is based the treading libraries of the operating system, the same reasoning could also be applied at a lower level, indicating that the operating system is making this limitation. To confirm this assumption, we ran the bare metal scenario with an increased concurrency of 12 per unit. If the maximum number of simultaneous tasks never reached 24, we observed nevertheless that the number of concurrent processes increased, at least confirming that the parameter may be an upper bound.
 
       In term of cost, a simple calculation gives us a total fee of \$ 1.71 for the first cloud scenario and \$ 1.25 in the second one. We based our calculations on the Amazon pricing.
       \begin{align*}
-        \text{pofile cost} \times {instances} \times \text{overal time} &= \text{total fee} \\
+        \text{profile cost} \times {instances} \times \text{overall time} &= \text{total fee} \\
         0.145[\$/h] \times 10         \times 1.18[h] &= 1.71[\$] && \text{first scenario} \\
         (0.145[\$/h] + 0.58 \times 2) \times 0.96[h] &= 1.25[\$] && \text{second scenario}\\
       \end{align*}
@@ -161,123 +167,123 @@ profile with low-latency)
       \end{align*}
       Please note that in both cases, we neglect the cost of downloading back the transcoded media to our own computers.
 
-      Finally, an interesting comparison would be to compare the cost of the cloud utilization, compared to our are metal. We invite the reader to consult the survey carried out by Jeremy Edberg, who gave an estimation of the maintenance cost of a data center.
+      Finally, it may be interesting to compare the cost of the cloud utilization, with the cost of installation and maintenance of our bare metal installation. However, this comparison goes beyond the purpose of this benchmarking.
 
     \subsection{Bottlenecks identification}
-      As said above, we measured different values about the instances activity, while performing the transcoding tasks. Intuitively, we would have thought that the network, or possibly the storage would be the bottleneck of the plateform but, surprisingly enough, we identificated that CPU load was the main problem. The following is a more detailed review of our results.
+      As said above, we measured different values about the instances activity, while performing the transcoding tasks. Intuitively, we would have thought that the network, or possibly the storage would be the bottleneck of the platform but, surprisingly enough, we identified that CPU load was the main problem. The following is a more detailed review of our results.
 
       \subsubsection{Processor}
-        In both our cloud scenari, we remarked that the bottleneck was the CPU load of transcoding units, culimnating around 100\% in the two use cases. However, in the bare metal deployment, units did not consumed all the CPU power. We should stress that we probably underestimated the computation power of our installation, leading to such diffences. To confirm this assumption we ran compared our results with a similar use case but with more concurrent transcoding workers. This time, the CPU utilization capped to 100\%. Furthermore, if the total number of simultaneous tasks increased to 25, the total run was even slower than the former one. This convince us to point the CPU as a significant bottleneck of the plateform, which possibly overrules most of the perfomance issues. Figure \ref{s1ct} \ref{s2ct} \ref{bmct} illustrate our results.
+        In both our cloud scenari, we remarked that the bottleneck was the CPU load of transcoding units, culminating around 100\% in the two use cases. However, in the bare metal deployment, units did not consume all the CPU power. We should stress that we probably underestimated the computation power of our installation when we computed ECU equivalences, leading to such differences. To confirm this assumption we compared our results with a similar use case but with more concurrent transcoding workers. This time, the CPU utilization capped to 100\%. Furthermore, if the total number of simultaneous tasks increased to 25, the complete run was even slower than the former one. This convince us to point the CPU as a significant bottleneck of the platform, which possibly overrules most of the performance issues. Figure \ref{s1ct} \ref{s2ct} \ref{bmct} illustrate our results.
         
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s1-cpu-times.png}
-          \caption{CPU utilization over the time in first scenario}
+          \includegraphics[scale=0.3]{figures/s1-cpu-times.png}
+          \caption{CPU consumption over the time in first scenario, depicting CPU overburden in transcoding units}
           \label{s1ct}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s2-cpu-times.png}
-          \caption{CPU utilization over the time in second scenario}
+          \includegraphics[scale=0.3]{figures/s2-cpu-times.png}
+          \caption{CPU consumption over the time in second scenario, depicting overburden CPU in transcoding units}
           \label{s2ct}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{bm-cpu-times.png}
-          \caption{CPU utilization over the time in bare metal}
+          \includegraphics[scale=0.3]{figures/bm-cpu-times.png}
+          \caption{CPU consumption over the time in bare metal, depicting a suitable utilization}
           \label{bmct}
         \end{figure}
 
-        As we blended the orchestrator with the thranscoding units in the bare metal scenario, we could not identificate its own CPU consumption. However, in the two cloud scenari we remarked that orchestra consumed about 40\% of its available power. This result is quite logical since both deployments used the same instance type for the orchestrator. We think that we underused the machine on which was located the orchestrator, as it will be confirmed in our review of virtual memory consumption.
+        As we blended the orchestrator with the transcoding units in the bare metal scenario, we could not identify its own CPU consumption. However, in the two cloud scenari we remarked that orchestra consumed about 40\% of its available power. This result is quite logical since both deployments used the same instance type for the orchestrator. We think that we underused the machine on which was located the orchestrator, as it will be confirmed in our review of virtual memory consumption.
 
-        Finally, cloud scenari also showed us CPU consumption of the storage units. As we can see on figure \ref{s1ct} \ref{s2ct} \ref{bmct} , values were quite low and clearly showed an underutilization.
+        Finally, cloud scenari also showed us CPU consumption of the storage units. As we can see on figure \ref{s1ct} \ref{s2ct}, values were quite low and clearly showed an underutilization.
 
       \subsubsection{Virtual Memory}
-        In all our scenari, we saw that the virtual memory consumption was not an issue, whatever the unit type. Orchestrator consumed between 30\% and 35\% of its available memory in both cloud scenari, which is quite expectable since it ran on the same instance type. We explain the additional memory consumption of the first scenario by the fact that it involved more units and thus more processing for the orchestrator. Values measured for storage units in the first scenario told us that memory was not an issue for this type of unit; it remained stable around 10\% which convince us to neglect it in other scenari. Figure \ref{vmem} depicts measured values.
+        In all our scenari, we saw that the virtual memory consumption was not an issue, whatever the unit type. Orchestrator consumed between 30\% and 35\% of its available memory in both cloud scenari, which is quite expectable since it ran on the same instance type. We explain the additional memory consumption of the first scenario by the fact that it involved more units and thus more processing for the orchestrator. Values measured for storage units in the first scenario told us that memory was not an issue for this type of unit; it remained stable around 10\% which convince us to neglect it in other scenari. Figure \ref{s1v} \ref{s2v} \ref{bmv} depict measured values.
         
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s1-vmem.png}
+          \includegraphics[scale=0.3]{figures/s1-vmem.png}
           \caption{Memory consumption over the time in first scenario}
           \label{s1v}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s2-vmem.png}
+          \includegraphics[scale=0.3]{figures/s2-vmem.png}
           \caption{Memory consumption over the time in second scenario}
           \label{s2v}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{bm-vmem.png}
+          \includegraphics[scale=0.3]{figures/bm-vmem.png}
           \caption{Memory consumption over the time in bare metal}
           \label{bmv}
         \end{figure}
 
-        Transcoding units showed the most interesting results. In all scenari we remarked that it decreased as the time went, which is explained by the rarefiction of task to perform. As we can see on figure \ref{s1v} \ref{s2v} \ref{bmv}, memory consumption evolved by huge steps. Actually, it corresponds to several tasks starting or beginning at the same time; indeed as tasks were homogeneous, it was likely that a complete batch of tasks finished at the samte time. This behavior is well observable in the second cloud scenario, were we can clearly trace the blocks of tasks.
+        Transcoding units showed the most interesting results. In all scenari we remarked that it decreased as the time went, which is explained by the rarefaction of task to perform. As we can see on figure \ref{s1v} \ref{s2v} \ref{bmv}, memory consumption evolved by huge steps. Actually, it corresponds to several tasks starting or beginning at the same time; indeed as tasks were homogeneous, it was likely that a complete batch of tasks finished at the same time. This behavior is well observable in the second cloud scenario, were we can clearly trace the blocks of tasks.
 
       \subsubsection{Disk and network}
-        We group these two metrics because they are quite related, as would lead the intuition.
+        We group these two metrics because they are quite related, as expected.
 
-        A problem that arised in our scenari was induced by the fact that we had only one file to transcode. That means that even if we had several storage units, input media was actually always downloaded from the same machine. This side effect can be observed in charts reporting byted read over the time. However, in the bare metal screnario, we observed almost no reading activity. This is because we ran our test several times, to the extent that the input media was stored in the cache, and not in the hard drive anymore. Other units, storage or not, made almost no writing activity. We explain this by the fact that our plateform uses directly the storage mounts. Figure \ref{s1dbr} \ref{s2dbr} \ref{bmdbr} depicts our results.
+        A problem that arose in our scenari was induced by the fact that we had only one file to transcode. That means that even if we had several storage units, input media assets were actually always downloaded from the same machine. This side effect can be observed in charts reporting bytes read over the time. Furthermore, in the bare metal scenario, we observed almost no reading activity. This is because we ran our test several times, to the extent that the input media was stored in the cache, and not in the hard drive anymore. Other units, storage or not, made almost no writing activity. We explain this by the fact that our platform uses directly the storage mounts which rather corresponds to a network activity. Figure \ref{s1dbr} \ref{s2dbr} \ref{bmdbr} depict our results.
         
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s1-disk-rb.png}
+          \includegraphics[scale=0.3]{figures/s1-disk-rb.png}
           \caption{Bytes read over the time in first scenario}
           \label{s1dbr}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s2-disk-rb.png}
+          \includegraphics[scale=0.3]{figures/s2-disk-rb.png}
           \caption{Bytes read over the time in second scenario}
           \label{s2dbr}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{bm-disk-rb.png}
+          \includegraphics[scale=0.3]{figures/bm-disk-rb.png}
           \caption{Bytes read over the time in bare metal}
           \label{bmdbr}
         \end{figure}
 
-        More interesting are the values of the network activity, regarding the received data. The first scenario exposed a very stable behaviour with only few pikes on the transcoding units when batches of new tasks were scheduled. Storage units were even not affected by any pikes, since every output media was equally distributed, thus producing no network congestion. On the second scenario, we remarked that the values of storage units were constantly increasing. This is because the deployment counted only two storage units, so leading to an increasing consumption of the network as more tasks were written. Figure \ref{s1nrb} \ref{s2nrb} \ref{bmnrb} depicts our results.
+        More interesting are the values of the network activity, regarding the received data. The first scenario exposed a very stable behavior with only few pikes on the transcoding units when batches of new tasks were scheduled. Storage units were not even affected by any pikes, since every output media was equally distributed, thus not producing network congestion. On the second scenario, we remarked that the values of storage units were constantly increasing. This is because the deployment counted only two storage units, so leading to an increasing consumption of the network as more tasks were written. Figure \ref{s1nrb} \ref{s2nrb} \ref{bmnrb} depict our results.
 
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s1-network-br.png}
+          \includegraphics[scale=0.3]{figures/s1-network-br.png}
           \caption{Received bytes over the time in first scenario}
           \label{s1nrb}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s2-network-br.png}
+          \includegraphics[scale=0.3]{figures/s2-network-br.png}
           \caption{Received bytes over the time in second scenario}
           \label{s2nrb}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{bm-network-br.png}
+          \includegraphics[scale=0.3]{figures/bm-network-br.png}
           \caption{Received bytes over the time in bare metal}
           \label{bmnrb}
         \end{figure}
 
-        Disk writing activities are quite similar in all scenari. As we explained above, output medias were equally distributed between storage units, thus explaining these results. In the second scenario, we noticed a sort of switch between the level of activity of the two storage units. We explain this behaviour by the load balencing system of Gluster FS. Figure \ref{s1dbw} \ref{s2dbw} \ref{bmdbw} depicts our results.
+        Disk writing activities are quite similar in all scenari. As we explained above, output media assets were equally distributed between storage units, thus explaining these results. In the second scenario, we noticed a sort of switch between the level of activity of the two storage units. We explain this behavior by the load balancing system of Gluster FS, which distributes the files over the available storage units. Figure \ref{s1dbw} \ref{s2dbw} \ref{bmdbw} depicts our results.
 
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s1-disk-wb.png}
+          \includegraphics[scale=0.3]{figures/s1-disk-wb.png}
           \caption{Bytes written over the time in first scenario}
           \label{s1dbw}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{s2-disk-wb.png}
+          \includegraphics[scale=0.3]{figures/s2-disk-wb.png}
           \caption{Bytes written over the time in second scenario}
           \label{s2dbw}
         \end{figure}
         \begin{figure}
           \centering
-          \includegraphics[scale=0.3]{bm-disk-wb.png}
+          \includegraphics[scale=0.3]{figures/bm-disk-wb.png}
           \caption{Bytes written over the time in bare metal}
           \label{bmdbw}
         \end{figure}
@@ -285,8 +291,10 @@ profile with low-latency)
         Data sent over the network matches the observation we did earlier about the fact that only one storage unit could distribute the input file.
 
   \section{Conclusion and advices}
-    As said in the results discussion, a surprising discover was the fact that network was not the bottleneck of the system, but CPU was. Other results were quite straightforward and followed our expectations.
+    As said in the results discussion, a surprising discover was the fact that network was not the bottleneck of the system, but actually the CPU was. In fact, because most of the CPU time is used by transcoding tasks, it alleviates the network load to the extent the network capacity is underutilized. Our results also spotted that using too much concurrent workers may induce an important overhead, possibly slowing down the system. As a result, we may stress that the correct number of concurrent processes is difficult estimate, and depends mostly on the scenario of deployment being used, together with the type of transcoding being performed; fewer longer tasks doesn't create as much overhead as a bigger amount of shorter tasks.
+    
+    Our results also shown that if the CPU is heavily used on a transcoding unit, it is not the same for an orchestration or a storage unit. This convinces us that it may be reasonnable to choose a more modest configuration for the orchestration unit, that is a cheaper instance type in the case of a cloud deployment. For the storage units, we think a blending with the transcoding units is the best option. CPU utilization is quiet low for storage units, and obviously it is interesting to avoid data transfer over the network, if transcoding units can pick the media assets directly from their own hard drive.
 
-    We would recommand the deploy a plateform similar to what we did in the second scenario, with a more modest instance type for the orchestrator. Mixing storage units with transcoding units revealed to be a very interesting gain, especially because ffmpeg is very active in term of disk activity.
+    For a deployment exclusively on a bare metal installation, we think that mixing a storage and a transcoding unit on each available server would be a perfect configuration. Since orchestration doesn't require too much performances, a good choice would probably to deploy one storage/transcoding/orchestration unit with a slightly inferior limit for transcoding workers concurrency. On a full cloud deployment, we would recommand the deploy a platform similar to what we did in the second scenario, with a more modest instance type for the orchestrator. Finally, an interesting hybrid solution would be to deploy on demand more transcoding workers on the cloud, to alleviate the work load of the private servers.
 
 \end{document}
