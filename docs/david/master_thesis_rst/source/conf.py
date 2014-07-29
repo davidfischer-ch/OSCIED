@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 #
 # Open Source Cloud Infrastructure for Encoding and Distribution documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan 23 23:45:33 2013.
